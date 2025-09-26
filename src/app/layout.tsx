@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${poppins.variable} ${josefin.variable} ${cursive.variable} !bg-white dark:bg-gradient-to-b dark:from-gray-900 dark:to-black duration-300 bg-no-repeat`}
       >
-        {children} {/* ✅ This renders your page content */}
+        {children} {/* This renders your page content */}
       </body>
     </html>
   );
