@@ -1,3 +1,5 @@
+"use client";
+
 import React, { FC, useEffect, useState } from "react";
 
 type Props = {
@@ -21,8 +23,8 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleClose = (e: any) => {
-    if (e.target.id === "screen") {
+  const handleClose = (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).id === "screen") {
       setOpenSideBar(false);
     }
   };
