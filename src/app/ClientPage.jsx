@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Heading from "./utils/Heading";
 import Header from "./components/Header";
+import Hero from "./components/Route/Hero"
+import Footer from "./components/Footer"
+
 
 export default function ClientPage() {
   const [open, setOpen] = useState(false);
@@ -24,6 +27,11 @@ export default function ClientPage() {
         route={route}
         setRoute={setRoute}
       />
+
+      <Hero />
+
+
+      <Footer/>
     </div>
   );
 }
