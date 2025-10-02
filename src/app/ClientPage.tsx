@@ -30,6 +30,8 @@ export default function ClientPage() {
 
       <Hero />
 
+      
+
 
       <Footer/>
     </div>

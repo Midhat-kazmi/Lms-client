@@ -2,6 +2,9 @@
 import React, { FC, useEffect, useState } from "react";
 import { Moon, Sun, User, Menu, X } from "lucide-react"; 
 import Link from "next/link";
+import CustomModel from "../utils/CustomModel";
+import Login from "../components/Auth/Login";
+
 
 type Props = {
   open: boolean;
@@ -132,6 +135,17 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
             </button>
             <p className="text-xs mt-6 text-gray-500 dark:text-gray-400">©️ 2025 E-Learning</p>
           </div>
+            {route === "Login" && open && (
+        <CustomModel
+          open={open}
+          setOpen={setOpen}
+          setRoute={setRoute}
+          activeItem={activeItem}
+          component={Login}
+          refetch={fetch}
+        />
+      )}
+    
         </div>
       )}
     </header>
