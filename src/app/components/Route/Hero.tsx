@@ -10,8 +10,7 @@ const Hero = () => {
   const [search, setSearch] = useState("");
   const router = useRouter();
 
-  //  removed useGetHeroDataQuery
-  // Instead, use static mock data (replace with real API later if needed)
+  // Mock data for now
   const isLoading = false;
   const data = {
     layout: {
@@ -41,11 +40,11 @@ const Hero = () => {
           {/* Hero banner Image */}
           <div className="lg:w-1/2 flex items-center justify-center z-10 mb-8 lg:mb-0">
             <Image
-              src={data.layout.banner.image.url}
-              width={400}
-              height={400}
+              src="https://res.cloudinary.com/dgve6ewpr/image/upload/v1759371686/lms-learning-management-system-as-online-education-concept-educational-technology-online-learning-delivery-training-knowledge-software-application-qualification-framework-illustration-free-vector_uk8cmt.jpg"
+              width={320}
+              height={320}
               alt="Hero Banner"
-              className="object-contain w-full max-w-[300px] lg:max-w-[400px] h-auto"
+              className="object-cover w-64 h-64 lg:w-80 lg:h-80 rounded-full shadow-lg"
             />
           </div>
 
@@ -55,6 +54,7 @@ const Hero = () => {
             <h1 className="text-3xl lg:text-5xl font-bold text-gray-800 dark:text-white mb-4 leading-tight">
               {data.layout.banner.title}
             </h1>
+
             {/* Subtitle */}
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-lg">
               {data.layout.banner.subTitle}
@@ -80,38 +80,39 @@ const Hero = () => {
             </form>
 
             {/* Trust indicators */}
-            <div className="flex items-center space-x-4">
-              <div className="flex -space-x-2">
-                <Image
-                  src="/assets/client-1.jpg"
-                  alt=""
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-                <Image
-                  src="/assets/client-2.jpg"
-                  alt=""
-                  width={40}
-                  height={40}
-                  className="rounded-full ml-[-20px]"
-                />
-                <Image
-                  src="/assets/client-3.jpg"
-                  alt=""
-                  width={40}
-                  height={40}
-                  className="rounded-full ml-[-20px]"
-                />
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                <span className="font-semibold">500K+</span> People already
-                trust us.{" "}
-                <Link href="/courses" className="text-blue-500 hover:underline">
-                  View Courses
-                </Link>
-              </p>
-            </div>
+            {/* Trust indicators */}
+<div className="flex items-center space-x-4">
+  <div className="flex -space-x-4">
+    <Image
+      src="https://res.cloudinary.com/dgve6ewpr/image/upload/v1759371687/f49a1537ed0ad0933cc151f8253d8100_revxua.jpg"
+      alt="User 1"
+      width={48}
+      height={48}
+      className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-gray-900"
+    />
+    <Image
+      src="https://res.cloudinary.com/dgve6ewpr/image/upload/v1754548277/avatars/c3t4yrlzawahrptjdkt8.jpg"
+      alt="User 2"
+      width={48}
+      height={48}
+      className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-gray-900"
+    />
+    <Image
+      src="https://res.cloudinary.com/dgve6ewpr/image/upload/v1757171811/avatars/k3ppf5cqmjl1bkko8mrn.jpg"
+      alt="User 3"
+      width={48}
+      height={48}
+      className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-gray-900"
+    />
+  </div>
+  <p className="text-sm text-gray-600 dark:text-gray-300">
+    <span className="font-semibold">500K+</span> People already trust us.{" "}
+    <Link href="/courses" className="text-blue-500 hover:underline">
+      View Courses
+    </Link>
+  </p>
+</div>
+
           </div>
         </div>
       )}

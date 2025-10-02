@@ -1,10 +1,10 @@
 "use client";
 import React, { FC, useEffect, useState } from "react";
-import { Moon, Sun, User, Menu, X } from "lucide-react"; 
+import { Moon, Sun, User, Menu, X } from "lucide-react";
 import Link from "next/link";
 import CustomModel from "../utils/CustomModel";
 import Login from "../components/Auth/Login";
-
+import SignUp from "../components/Auth/SignUp";
 
 type Props = {
   open: boolean;
@@ -45,7 +45,9 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
     >
       <div className="w-[95%] mx-auto flex items-center justify-between h-[70px]">
         {/* Logo */}
-        <h2 className="text-2xl font-bold text-black dark:text-white">ELearning</h2>
+        <h2 className="text-2xl font-bold text-black dark:text-white">
+          ELearning
+        </h2>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
@@ -75,10 +77,13 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
 
-          {/* User */}
+          {/* User/Login icon */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-            onClick={() => setOpen(true)}
+            onClick={() => {
+              setRoute("login");
+              setOpen(true);
+            }}
           >
             <User size={20} />
           </button>
@@ -95,13 +100,18 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
 
       {/* Mobile Sidebar */}
       {openSideBar && (
-        <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setOpenSideBar(false)}>
+        <div
+          className="fixed inset-0 bg-black/40 z-40"
+          onClick={() => setOpenSideBar(false)}
+        >
           <div
             className="absolute right-0 top-0 w-[70%] h-full bg-white dark:bg-gray-900 p-6 shadow-lg animate-slideIn"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="font-bold text-lg text-black dark:text-white">Menu</h2>
+              <h2 className="font-bold text-lg text-black dark:text-white">
+                Menu
+              </h2>
               <button onClick={() => setOpenSideBar(false)}>
                 <X size={24} className="text-black dark:text-white" />
               </button>
@@ -124,8 +134,11 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
               </Link>
             ))}
             <hr className="my-4 border-gray-300 dark:border-gray-700" />
+
+            {/* Login button */}
             <button
               onClick={() => {
+                setRoute("login");
                 setOpen(true);
                 setOpenSideBar(false);
               }}
@@ -133,20 +146,44 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
             >
               Login
             </button>
-            <p className="text-xs mt-6 text-gray-500 dark:text-gray-400">©️ 2025 E-Learning</p>
+
+            {/* Sign Up button */}
+            <button
+              onClick={() => {
+                setRoute("signup");
+                setOpen(true);
+                setOpenSideBar(false);
+              }}
+              className="w-full py-2 px-4 bg-green-600 text-white rounded-lg mt-3"
+            >
+              Sign Up
+            </button>
+
+            <p className="text-xs mt-6 text-gray-500 dark:text-gray-400">
+              ©️ 2025 E-Learning
+            </p>
           </div>
-            {route === "Login" && open && (
+        </div>
+      )}
+
+      {/* Modals */}
+      {route === "login" && open && (
         <CustomModel
           open={open}
           setOpen={setOpen}
           setRoute={setRoute}
           activeItem={activeItem}
           component={Login}
-          refetch={fetch}
         />
       )}
-    
-        </div>
+      {route === "signup" && open && (
+        <CustomModel
+          open={open}
+          setOpen={setOpen}
+          setRoute={setRoute}
+          activeItem={activeItem}
+          component={SignUp}
+        />
       )}
     </header>
   );

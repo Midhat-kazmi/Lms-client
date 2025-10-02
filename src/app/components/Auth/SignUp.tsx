@@ -9,34 +9,54 @@ type Props = {
   refetch?: () => void;
 };
 
-const Login: FC<Props> = ({ setRoute, setOpen }) => {
+const Signup: FC<Props> = ({ setRoute, setOpen }) => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError("Please fill in all fields.");
+
+    if (!name || !email || !password || !confirmPassword) {
+      setError("All fields are required.");
       return;
     }
     if (password.length < 6) {
       setError("Password must be at least 6 characters.");
       return;
     }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setError("");
-    alert(`Logged in with email: ${email}`);
-    setOpen(false); // close modal
+    alert(`Signed up with email: ${email}`);
+    setOpen(false); // close modal after signup
   };
 
   return (
     <div className="w-full max-w-md mx-auto p-6 bg-white dark:bg-gray-900 rounded-lg shadow">
       <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
-        Login to E-Learning
+        Create Your Account
       </h1>
 
       <form onSubmit={handleSubmit}>
+        {/* Name */}
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Name
+        </label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your full name"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-pink-500"
+        />
+
         {/* Email */}
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Email
@@ -70,6 +90,18 @@ const Login: FC<Props> = ({ setRoute, setOpen }) => {
           </button>
         </div>
 
+        {/* Confirm Password */}
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Confirm Password
+        </label>
+        <input
+          type={show ? "text" : "password"}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Re-enter password"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-pink-500"
+        />
+
         {/* Error */}
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
@@ -78,52 +110,37 @@ const Login: FC<Props> = ({ setRoute, setOpen }) => {
           type="submit"
           className="w-full py-2 px-4 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition"
         >
-          Login
+          Sign Up
         </button>
       </form>
 
-      {/* Divider */}
+      {/* Social Signup */}
       <div className="flex items-center my-6">
         <hr className="flex-grow border-gray-300 dark:border-gray-700" />
-        <span className="px-3 text-sm text-gray-500 dark:text-gray-400">OR</span>
+        <span className="mx-2 text-gray-500 text-sm">or</span>
         <hr className="flex-grow border-gray-300 dark:border-gray-700" />
       </div>
 
-      {/* Social Login */}
-      <div className="space-y-3">
-        <button
-          type="button"
-          className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-        >
-          <FcGoogle size={20} />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Continue with Google
-          </span>
+      <div className="flex gap-4">
+        <button className="flex-1 flex items-center justify-center gap-2 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+          <FcGoogle size={20} /> Google
         </button>
-
-        <button
-          type="button"
-          className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-        >
-          <AiFillGithub size={20} className="text-gray-800 dark:text-white" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Continue with GitHub
-          </span>
+        <button className="flex-1 flex items-center justify-center gap-2 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+          <AiFillGithub size={20} /> GitHub
         </button>
       </div>
 
-      {/* Signup redirect */}
       <p className="text-center text-sm mt-6 text-gray-600 dark:text-gray-400">
-        Don’t have an account?{" "}
+        Already have an account?{" "}
         <span
           className="text-pink-600 cursor-pointer hover:underline"
-          onClick={() => setRoute("signup")}
+          onClick={() => setRoute("login")}
         >
-          Sign up
+          Login
         </span>
       </p>
     </div>
   );
 };
 
-export default Login;
+export default Signup;
