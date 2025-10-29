@@ -19,20 +19,30 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
   const [openSideBar, setOpenSideBar] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
-  // Scroll effect
+  //  Scroll effect (adds shadow when scrolled)
   useEffect(() => {
     const handleScroll = () => setActive(window.scrollY > 80);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Apply/remove dark mode on <html>
+  //  Load saved theme from localStorage
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("darkMode");
+    if (storedTheme === "true") {
+      setDarkMode(true);
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
+
+  //  Apply/remove dark mode & save preference
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
+    localStorage.setItem("darkMode", String(darkMode));
   }, [darkMode]);
 
   const navItems = ["Home", "Courses", "About", "Policy", "FAQ"];
@@ -49,7 +59,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
           ELearning
         </h2>
 
-        {/* Desktop Nav */}
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
           {navItems.map((item, i) => (
             <Link
@@ -69,15 +79,16 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          {/* Dark/Light toggle */}
+          {/* 🌙 / ☀️ Dark Mode Toggle */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={() => setDarkMode(!darkMode)}
+            title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
 
-          {/* User/Login icon */}
+          {/* 👤 User/Login Icon */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={() => {
@@ -88,7 +99,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
             <User size={20} />
           </button>
 
-          {/* Mobile menu */}
+          {/* ☰ Mobile Menu */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden"
             onClick={() => setOpenSideBar(true)}
@@ -98,7 +109,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
         </div>
       </div>
 
-      {/* Mobile Sidebar */}
+      {/*  Mobile Sidebar */}
       {openSideBar && (
         <div
           className="fixed inset-0 bg-black/40 z-40"
@@ -116,6 +127,8 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
                 <X size={24} className="text-black dark:text-white" />
               </button>
             </div>
+
+            {/* Sidebar Links */}
             {navItems.map((item, i) => (
               <Link
                 key={i}
@@ -133,9 +146,10 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
                 {item}
               </Link>
             ))}
+
             <hr className="my-4 border-gray-300 dark:border-gray-700" />
 
-            {/* Login button */}
+            {/* Auth Buttons */}
             <button
               onClick={() => {
                 setRoute("login");
@@ -147,7 +161,6 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
               Login
             </button>
 
-            {/* Sign Up button */}
             <button
               onClick={() => {
                 setRoute("signup");
@@ -166,7 +179,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
         </div>
       )}
 
-      {/* Modals */}
+      {/* 🪟 Modals */}
       {route === "login" && open && (
         <CustomModel
           open={open}
