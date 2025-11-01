@@ -1,7 +1,12 @@
 "use client";
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { AiOutlineEyeInvisible, AiOutlineEye, AiFillGithub } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
-import { AiFillGithub } from "react-icons/ai";
+import toast from "react-hot-toast";
+import { signIn } from "next-auth/react";
+import { useLoginMutation } from "../../../redux/features/auth/authApi";
 
 type Props = {
   setRoute: (route: string) => void;
@@ -9,74 +14,96 @@ type Props = {
   refetch?: () => void;
 };
 
-const Login: FC<Props> = ({ setRoute, setOpen }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [show, setShow] = useState(false);
-  const [error, setError] = useState("");
+//  Validation Schema
+const schema = Yup.object().shape({
+  email: Yup.string().email("Invalid Email!").required("Please enter your email."),
+  password: Yup.string().required("Please enter your password.").min(6, "Password must be at least 6 characters."),
+});
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      setError("Please fill in all fields.");
-      return;
+const Login: FC<Props> = ({ setRoute, setOpen, refetch }) => {
+  const [show, setShow] = useState(false);
+  const [login, { isSuccess, error }] = useLoginMutation();
+
+  // Formik setup
+  const formik = useFormik({
+    initialValues: { email: "", password: "" },
+    validationSchema: schema,
+    onSubmit: async (values) => {
+      await login(values);
+    },
+  });
+
+  const { values, errors, touched, handleChange, handleSubmit } = formik;
+
+  //  Handle API responses
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success("Login successful!");
+      setOpen(false);
+      refetch && refetch();
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
+
+    if (error && "data" in error) {
+      const err = error as any;
+      toast.error(err.data.message || "Login failed!");
     }
-    setError("");
-    alert(`Logged in with email: ${email}`);
-    setOpen(false); // close modal
-  };
+  }, [isSuccess, error, setOpen, refetch]);
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-white dark:bg-gray-900 rounded-lg shadow">
+    <div className="w-full max-w-md mx-auto p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-lg">
       <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
         Login to E-Learning
       </h1>
 
       <form onSubmit={handleSubmit}>
-        {/* Email */}
+        {/* Email Field */}
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Email
         </label>
         <input
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          name="email"
+          value={values.email}
+          onChange={handleChange}
           placeholder="you@example.com"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-pink-500"
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 ${
+            errors.email && touched.email ? "border-red-500" : "border-gray-300"
+          }`}
         />
+        {errors.email && touched.email && (
+          <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+        )}
 
-        {/* Password */}
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        {/* Password Field */}
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mt-4 mb-1">
           Password
         </label>
-        <div className="relative mb-4">
+        <div className="relative">
           <input
             type={show ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            name="password"
+            value={values.password}
+            onChange={handleChange}
             placeholder="Enter password"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 ${
+              errors.password && touched.password ? "border-red-500" : "border-gray-300"
+            }`}
           />
-          <button
-            type="button"
-            className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-500"
+          <span
+            className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
             onClick={() => setShow(!show)}
           >
-            {show ? "Hide" : "Show"}
-          </button>
+            {show ? <AiOutlineEye size={20} /> : <AiOutlineEyeInvisible size={20} />}
+          </span>
         </div>
+        {errors.password && touched.password && (
+          <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+        )}
 
-        {/* Error */}
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-        {/* Submit */}
+        {/* Submit Button */}
         <button
           type="submit"
-          className="w-full py-2 px-4 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition"
+          className="w-full mt-5 py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 transition"
         >
           Login
         </button>
@@ -89,11 +116,12 @@ const Login: FC<Props> = ({ setRoute, setOpen }) => {
         <hr className="flex-grow border-gray-300 dark:border-gray-700" />
       </div>
 
-      {/* Social Login */}
+      {/* Social Logins */}
       <div className="space-y-3">
         <button
           type="button"
           className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+          onClick={() => signIn("google")}
         >
           <FcGoogle size={20} />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -104,6 +132,7 @@ const Login: FC<Props> = ({ setRoute, setOpen }) => {
         <button
           type="button"
           className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+          onClick={() => signIn("github")}
         >
           <AiFillGithub size={20} className="text-gray-800 dark:text-white" />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -112,7 +141,7 @@ const Login: FC<Props> = ({ setRoute, setOpen }) => {
         </button>
       </div>
 
-      {/* Signup redirect */}
+      {/* Signup Link */}
       <p className="text-center text-sm mt-6 text-gray-600 dark:text-gray-400">
         Don’t have an account?{" "}
         <span

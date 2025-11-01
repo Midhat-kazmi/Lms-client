@@ -1,6 +1,8 @@
 import { Cedarville_Cursive, Poppins, Josefin_Sans } from "next/font/google";
 import "./globals.css";
 import { ReactNode } from "react";
+import { ReduxProvider } from "../redux/provider";
+
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -26,7 +28,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${poppins.variable} ${josefin.variable} ${cursive.variable} transition-colors duration-300`}
       >
-        {children}
+        <ReduxProvider>{children}</ReduxProvider>
       </body>
     </html>
   );
