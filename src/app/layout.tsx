@@ -1,7 +1,9 @@
 import { Cedarville_Cursive, Poppins, Josefin_Sans } from "next/font/google";
 import "./globals.css";
 import { ReactNode } from "react";
-import { ReduxProvider } from "../redux/provider";
+import { ReduxProvider } from "./provider";
+import { Toaster } from "react-hot-toast";
+
 
 
 const poppins = Poppins({
@@ -29,6 +31,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         className={`${poppins.variable} ${josefin.variable} ${cursive.variable} transition-colors duration-300`}
       >
         <ReduxProvider>{children}</ReduxProvider>
+        <Toaster position="top-center" reverseOrder={false} />
+
       </body>
     </html>
   );

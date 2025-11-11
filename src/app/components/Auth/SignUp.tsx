@@ -1,5 +1,5 @@
 "use client";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { AiOutlineEyeInvisible, AiOutlineEye, AiFillGithub } from "react-icons/ai";
@@ -27,9 +27,9 @@ const schema = Yup.object().shape({
 
 const Signup: FC<Props> = ({ setRoute, setOpen, refetch }) => {
   const [show, setShow] = useState(false);
-  const [registerUser, { isSuccess, error }] = useRegisterMutation();
+  const [registerUser, { isLoading }] = useRegisterMutation();
 
-  //  Formik setup
+  // Formik setup
   const formik = useFormik({
     initialValues: {
       name: "",
@@ -39,29 +39,26 @@ const Signup: FC<Props> = ({ setRoute, setOpen, refetch }) => {
     },
     validationSchema: schema,
     onSubmit: async (values) => {
-      const { name, email, password } = values;
-      await registerUser({ name, email, password });
+      try {
+        const { name, email, password } = values;
+        const res = await registerUser({ name, email, password });
+
+        if ("data" in res) {
+          toast.success("Signup successful! Please verify your email.");
+          setRoute("verification");
+        } else {
+          toast.error("Signup failed! Please try again.");
+        }
+      } catch (err) {
+        toast.error("An unexpected error occurred.");
+      }
     },
   });
 
   const { values, errors, touched, handleChange, handleSubmit } = formik;
 
-  //  Handle API responses
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success("Signup successful! Please verify your email.");
-      setOpen(false);
-      refetch && refetch();
-    }
-
-    if (error && "data" in error) {
-      const err = error as any;
-      toast.error(err.data.message || "Signup failed!");
-    }
-  }, [isSuccess, error, setOpen, refetch]);
-
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-lg">
+    <div className="w-full max-w-sm sm:max-w-md mx-auto p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-lg overflow-y-auto max-h-[90vh]">
       <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
         Create Your Account
       </h1>
@@ -152,9 +149,10 @@ const Signup: FC<Props> = ({ setRoute, setOpen, refetch }) => {
         {/* Submit */}
         <button
           type="submit"
-          className="w-full mt-5 py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 transition"
+          disabled={isLoading}
+          className="w-full mt-5 py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 transition disabled:opacity-70"
         >
-          Sign Up
+          {isLoading ? "Signing up..." : "Sign Up"}
         </button>
       </form>
 
@@ -169,20 +167,20 @@ const Signup: FC<Props> = ({ setRoute, setOpen, refetch }) => {
       <div className="space-y-3">
         <button
           type="button"
-          className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+          className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm sm:text-base"
         >
           <FcGoogle size={20} />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span className="font-medium text-gray-700 dark:text-gray-300">
             Continue with Google
           </span>
         </button>
 
         <button
           type="button"
-          className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+          className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm sm:text-base"
         >
           <AiFillGithub size={20} className="text-gray-800 dark:text-white" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span className="font-medium text-gray-700 dark:text-gray-300">
             Continue with GitHub
           </span>
         </button>
