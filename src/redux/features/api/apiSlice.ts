@@ -1,18 +1,39 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-
+import { userLogedIn } from "../auth/authSlice";
 export const apiSlice = createApi({
   reducerPath: "api",
+
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/v1", //  adjust base URL as needed
-    credentials: "include", // allows sending cookies (for auth)
+    baseUrl: process.env.NEXT_PUBLIC_SERVER_URL,
   }),
   endpoints: (builder) => ({
-    //  Example loadUser endpoint
+    refreshtoken: builder.query({
+      query: () => ({
+        url: "refresh-token",
+        method: "GET",
+        credentials: "include" as const,
+      }),
+    }),
     loadUser: builder.query({
-      query: () => "user/me", // adjust this route to match your backend
+      query: (data) => ({
+        url: "me",
+        method: "GET",
+        credentials: "include" as const,
+      }),
+      async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+        try {
+          const result = await queryFulfilled;
+          dispatch(
+            userLogedIn({
+              access_token: result.data.access_token,
+              user: result.data.user,
+            })
+          );
+        } catch (error) {
+          console.log((error as any)?.data?.message);
+        }
+      },
     }),
   }),
 });
-
-// Auto-generated React hooks
-export const { useLoadUserQuery } = apiSlice;
+export const { useRefreshtokenQuery, useLoadUserQuery } = apiSlice;

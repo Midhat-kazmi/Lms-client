@@ -3,8 +3,7 @@ import "./globals.css";
 import { ReactNode } from "react";
 import { ReduxProvider } from "./provider";
 import { Toaster } from "react-hot-toast";
-
-
+import SessionProviderWrapper from "./SessionProviderWrapper";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -30,9 +29,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${poppins.variable} ${josefin.variable} ${cursive.variable} transition-colors duration-300`}
       >
-        <ReduxProvider>{children}</ReduxProvider>
-        <Toaster position="top-center" reverseOrder={false} />
+        <SessionProviderWrapper>
+          <ReduxProvider>{children}</ReduxProvider>
+        </SessionProviderWrapper>
 
+        <Toaster position="top-center" reverseOrder={false} />
       </body>
     </html>
   );

@@ -1,12 +1,14 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface AuthState {
-  token: string;
+  token: string;               // access token after login
+  activationToken: string;     // activation token after register
   user: string | null;
 }
 
 const initialState: AuthState = {
   token: "",
+  activationToken: "",
   user: null,
 };
 
@@ -14,8 +16,8 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    userRegistration: (state, action: PayloadAction<{ token: string }>) => {
-      state.token = action.payload.token;
+    userRegistration: (state, action: PayloadAction<{ activationToken: string }>) => {
+      state.activationToken = action.payload.activationToken;
     },
     userLogedIn: (
       state,
@@ -26,11 +28,11 @@ const authSlice = createSlice({
     },
     userLogout: (state) => {
       state.token = "";
+      state.activationToken = "";
       state.user = null;
     },
   },
 });
-
 
 export const { userRegistration, userLogedIn, userLogout } = authSlice.actions;
 export default authSlice.reducer;

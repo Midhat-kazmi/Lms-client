@@ -1,12 +1,22 @@
 "use client";
+
 import React, { FC, useEffect, useState } from "react";
 import { Moon, Sun, User, Menu, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+
+// Auth + Redux
+import { useSession } from "next-auth/react";
+import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
+import { useLogoutQuery, useSocialAuthMutation } from "@/redux/features/auth/authApi";
+
+import avatar from "../../../public/assets/f49a1537ed0ad0933cc151f8253d8100.jpg";
+
+// Modals
 import CustomModel from "../utils/CustomModel";
 import Login from "../components/Auth/Login";
 import SignUp from "../components/Auth/SignUp";
 import Verification from "../components/Auth/Verification";
-
 
 type Props = {
   open: boolean;
@@ -21,14 +31,48 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
   const [openSideBar, setOpenSideBar] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
-  //  Scroll effect (adds shadow when scrolled)
+  //  NextAuth + Redux User Loading
+  const { data: session } = useSession();
+  const { data: userData, isLoading, refetch } = useLoadUserQuery(undefined);
+  const [socialAuth, { isSuccess }] = useSocialAuthMutation();
+
+  const [logout, setLogout] = useState(false);
+  useLogoutQuery(undefined, { skip: !logout });
+
+  //  Sync social login with backend
+useEffect(() => {
+  if (!isLoading) {
+    if (!userData && session) {
+      socialAuth({
+        email: session.user?.email ?? "",
+        name: session.user?.name ?? "",
+        avatar: session.user?.image ?? "",
+      });
+      refetch();
+    }
+  }
+}, [session, isLoading, userData, refetch, socialAuth]);
+
+
+  //  auto-close modal after success
+  useEffect(() => {
+    if (session && isSuccess) {
+      setOpen(false);
+    }
+    if (!session && !isLoading && !userData) {
+      setLogout(true);
+    }
+  }, [session, isSuccess, isLoading, userData, setOpen]);
+
+  // ------------------------
+  //  DARK MODE LOGIC
+  // ------------------------
   useEffect(() => {
     const handleScroll = () => setActive(window.scrollY > 80);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  //  Load saved theme from localStorage
   useEffect(() => {
     const storedTheme = localStorage.getItem("darkMode");
     if (storedTheme === "true") {
@@ -37,13 +81,10 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
     }
   }, []);
 
-  //  Apply/remove dark mode & save preference
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    if (darkMode) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+
     localStorage.setItem("darkMode", String(darkMode));
   }, [darkMode]);
 
@@ -56,6 +97,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
       }`}
     >
       <div className="w-[95%] mx-auto flex items-center justify-between h-[70px]">
+        
         {/* Logo */}
         <h2 className="text-2xl font-bold text-black dark:text-white">
           ELearning
@@ -79,9 +121,10 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
           ))}
         </nav>
 
-        {/* Right Section */}
+        {/* Right Side */}
         <div className="flex items-center gap-4">
-          {/* 🌙 / ☀️ Dark Mode Toggle */}
+
+          {/* Dark Mode */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={() => setDarkMode(!darkMode)}
@@ -90,18 +133,30 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
 
-          {/* 👤 User/Login Icon */}
-          <button
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-            onClick={() => {
-              setRoute("login");
-              setOpen(true);
-            }}
-          >
-            <User size={20} />
-          </button>
+          {/* Avatar / Login */}
+          {userData ? (
+            <Link href="/profile">
+              <Image
+                src={userData?.user?.avatar?.url || avatar}
+                alt="User"
+                width={32}
+                height={32}
+                className="rounded-full w-[32px] h-[32px] cursor-pointer object-cover hidden md:block"
+              />
+            </Link>
+          ) : (
+            <button
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 hidden md:block"
+              onClick={() => {
+                setRoute("login");
+                setOpen(true);
+              }}
+            >
+              <User size={20} />
+            </button>
+          )}
 
-          {/* ☰ Mobile Menu */}
+          {/* Mobile Menu */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden"
             onClick={() => setOpenSideBar(true)}
@@ -111,7 +166,9 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
         </div>
       </div>
 
-      {/*  Mobile Sidebar */}
+      {/* ----------------------- */}
+      {/* MOBILE SIDEBAR */}
+      {/* ----------------------- */}
       {openSideBar && (
         <div
           className="fixed inset-0 bg-black/40 z-40"
@@ -130,7 +187,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
               </button>
             </div>
 
-            {/* Sidebar Links */}
+            {/* SIDEBAR LINKS */}
             {navItems.map((item, i) => (
               <Link
                 key={i}
@@ -151,28 +208,42 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
 
             <hr className="my-4 border-gray-300 dark:border-gray-700" />
 
-            {/* Auth Buttons */}
-            <button
-              onClick={() => {
-                setRoute("login");
-                setOpen(true);
-                setOpenSideBar(false);
-              }}
-              className="w-full py-2 px-4 bg-pink-600 text-white rounded-lg"
-            >
-              Login
-            </button>
+            {/* Mobile Avatar */}
+            {userData ? (
+              <Link href="/profile">
+                <Image
+                  src={userData.user?.avatar?.url || avatar}
+                  alt="User"
+                  width={40}
+                  height={40}
+                  className="rounded-full w-[40px] h-[40px] mb-4"
+                />
+              </Link>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setRoute("login");
+                    setOpen(true);
+                    setOpenSideBar(false);
+                  }}
+                  className="w-full py-2 px-4 bg-pink-600 text-white rounded-lg"
+                >
+                  Login
+                </button>
 
-            <button
-              onClick={() => {
-                setRoute("signup");
-                setOpen(true);
-                setOpenSideBar(false);
-              }}
-              className="w-full py-2 px-4 bg-green-600 text-white rounded-lg mt-3"
-            >
-              Sign Up
-            </button>
+                <button
+                  onClick={() => {
+                    setRoute("signup");
+                    setOpen(true);
+                    setOpenSideBar(false);
+                  }}
+                  className="w-full py-2 px-4 bg-green-600 text-white rounded-lg mt-3"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
 
             <p className="text-xs mt-6 text-gray-500 dark:text-gray-400">
               ©️ 2025 E-Learning
@@ -181,7 +252,9 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
         </div>
       )}
 
-      {/* 🪟 Modals */}
+      {/* ----------------------- */}
+      {/* AUTH MODALS */}
+      {/* ----------------------- */}
       {route === "login" && open && (
         <CustomModel
           open={open}
@@ -189,8 +262,10 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
           setRoute={setRoute}
           activeItem={activeItem}
           component={Login}
+          refetch={refetch}
         />
       )}
+
       {route === "signup" && open && (
         <CustomModel
           open={open}
@@ -200,7 +275,8 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
           component={SignUp}
         />
       )}
-       {route === "verification" && open && (
+
+      {route === "verification" && open && (
         <CustomModel
           open={open}
           setOpen={setOpen}

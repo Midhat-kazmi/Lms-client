@@ -1,10 +1,10 @@
 import { apiSlice } from "../api/apiSlice";
-import { userLogedIn, userLogout } from "./authSlice";
+import { userLogedIn, userLogout, userRegistration } from "./authSlice";
 
 // --- Define Types ---
 type RegistrationResponse = {
   message: string;
-  activationtoken: string;
+  activationToken: string;
 };
 
 type RegistrationData = {
@@ -14,8 +14,8 @@ type RegistrationData = {
 };
 
 type ActivationData = {
-  activation_token: string;
-  activation_code: string;
+  activationToken: string;
+  activationCode: string;
 };
 
 type LoginData = {
@@ -41,25 +41,49 @@ type AuthResponse = {
 // --- Inject Endpoints ---
 export const authApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    // REGISTER (Store activationToken in Redux)
     register: builder.mutation<RegistrationResponse, RegistrationData>({
       query: (data) => ({
-        url: "user/register",
+        url: "/user/register",
         method: "POST",
         body: data,
       }),
+
+      async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+        try {
+          const result = await queryFulfilled;
+
+          // Store ONLY the activation token
+          dispatch(
+            userRegistration({
+              activationToken: result.data.activationToken,
+            })
+          );
+        } catch (error) {
+          console.log("Registration error:", error);
+        }
+      },
     }),
 
+    // ACTIVATE ACCOUNT (UI sends activationToken + code)
     activation: builder.mutation<{ success: boolean }, ActivationData>({
-      query: (data) => ({
-        url: "activate-user",
+      query: ({ activationToken, activationCode }) => ({
+        url: "/user/activate-user",
         method: "POST",
-        body: data,
+        body: {
+          activationToken,
+          activationCode,
+        },
+        headers: {
+          "Content-Type": "application/json",
+        },
       }),
     }),
 
+    // LOGIN
     login: builder.mutation<AuthResponse, LoginData>({
       query: (data) => ({
-        url: "login",
+        url: "/user/login",
         method: "POST",
         body: data,
       }),
@@ -78,9 +102,10 @@ export const authApi = apiSlice.injectEndpoints({
       },
     }),
 
+    // SOCIAL AUTH
     socialAuth: builder.mutation<AuthResponse, SocialAuthData>({
       query: (data) => ({
-        url: "social-auth",
+        url: "/user/social-auth",
         method: "POST",
         body: data,
       }),
@@ -99,9 +124,10 @@ export const authApi = apiSlice.injectEndpoints({
       },
     }),
 
+    // LOGOUT
     logout: builder.query<{ success: boolean }, void>({
       query: () => ({
-        url: "logout",
+        url: "/user/logout",
         method: "GET",
       }),
       async onQueryStarted(arg, { dispatch }) {
