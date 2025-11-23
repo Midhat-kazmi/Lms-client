@@ -8,7 +8,7 @@ import Image from "next/image";
 // Auth + Redux
 import { useSession } from "next-auth/react";
 import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
-import { useLogoutQuery, useSocialAuthMutation } from "@/redux/features/auth/authApi";
+import { useLogoutMutation, useSocialAuthMutation } from "@/redux/features/auth/authApi";
 
 import avatar from "../../../public/assets/f49a1537ed0ad0933cc151f8253d8100.jpg";
 
@@ -31,56 +31,65 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
   const [openSideBar, setOpenSideBar] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
-  //  NextAuth + Redux User Loading
+  // NextAuth + Redux User Loading
   const { data: session } = useSession();
   const { data: userData, isLoading, refetch } = useLoadUserQuery(undefined);
+
   const [socialAuth, { isSuccess }] = useSocialAuthMutation();
+  const [logout] = useLogoutMutation();
 
-  const [logout, setLogout] = useState(false);
-  useLogoutQuery(undefined, { skip: !logout });
+  const [shouldLogout, setShouldLogout] = useState(false);
 
-  //  Sync social login with backend
-useEffect(() => {
-  if (!isLoading) {
-    if (!userData && session) {
-      socialAuth({
-        email: session.user?.email ?? "",
-        name: session.user?.name ?? "",
-        avatar: session.user?.image ?? "",
-      });
-      refetch();
+  // Trigger logout correctly
+  useEffect(() => {
+    if (shouldLogout) {
+      logout({});
     }
-  }
-}, [session, isLoading, userData, refetch, socialAuth]);
+  }, [shouldLogout, logout]);
 
+  // Sync social login with backend
+  useEffect(() => {
+    if (!isLoading) {
+      if (!userData && session) {
+        socialAuth({
+          email: session.user?.email ?? "",
+          name: session.user?.name ?? "",
+          avatar: session.user?.image ?? "",
+        });
+        refetch();
+      }
+    }
+  }, [session, isLoading, userData, refetch, socialAuth]);
 
-  //  auto-close modal after success
+  // auto-close login modal after success
   useEffect(() => {
     if (session && isSuccess) {
       setOpen(false);
     }
+
+    // If user logged out from NextAuth but not backend → trigger logout
     if (!session && !isLoading && !userData) {
-      setLogout(true);
+      setShouldLogout(true);
     }
   }, [session, isSuccess, isLoading, userData, setOpen]);
 
-  // ------------------------
-  //  DARK MODE LOGIC
-  // ------------------------
+  // Scroll header effect
   useEffect(() => {
     const handleScroll = () => setActive(window.scrollY > 80);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Load dark mode from localStorage
   useEffect(() => {
-    const storedTheme = localStorage.getItem("darkMode");
-    if (storedTheme === "true") {
+    const stored = localStorage.getItem("darkMode");
+    if (stored === "true") {
       setDarkMode(true);
       document.documentElement.classList.add("dark");
     }
   }, []);
 
+  // Save dark mode
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
@@ -98,7 +107,6 @@ useEffect(() => {
     >
       <div className="w-[95%] mx-auto flex items-center justify-between h-[70px]">
         
-        {/* Logo */}
         <h2 className="text-2xl font-bold text-black dark:text-white">
           ELearning
         </h2>
@@ -121,14 +129,13 @@ useEffect(() => {
           ))}
         </nav>
 
-        {/* Right Side */}
+        {/* Right Section */}
         <div className="flex items-center gap-4">
 
           {/* Dark Mode */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={() => setDarkMode(!darkMode)}
-            title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -166,9 +173,7 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* ----------------------- */}
-      {/* MOBILE SIDEBAR */}
-      {/* ----------------------- */}
+      {/* Sidebar */}
       {openSideBar && (
         <div
           className="fixed inset-0 bg-black/40 z-40"
@@ -187,7 +192,7 @@ useEffect(() => {
               </button>
             </div>
 
-            {/* SIDEBAR LINKS */}
+            {/* Sidebar Links */}
             {navItems.map((item, i) => (
               <Link
                 key={i}
@@ -208,7 +213,7 @@ useEffect(() => {
 
             <hr className="my-4 border-gray-300 dark:border-gray-700" />
 
-            {/* Mobile Avatar */}
+            {/* Mobile Avatar or Login */}
             {userData ? (
               <Link href="/profile">
                 <Image
@@ -252,9 +257,7 @@ useEffect(() => {
         </div>
       )}
 
-      {/* ----------------------- */}
-      {/* AUTH MODALS */}
-      {/* ----------------------- */}
+      {/* Modals */}
       {route === "login" && open && (
         <CustomModel
           open={open}
