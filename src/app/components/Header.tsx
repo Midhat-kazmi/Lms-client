@@ -5,10 +5,14 @@ import { Moon, Sun, User, Menu, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-// Auth + Redux
 import { useSession } from "next-auth/react";
+
+// Redux
 import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
-import { useLogoutMutation, useSocialAuthMutation } from "@/redux/features/auth/authApi";
+import {
+  useLogoutMutation,
+  useSocialAuthMutation,
+} from "@/redux/features/auth/authApi";
 
 import avatar from "../../../public/assets/f49a1537ed0ad0933cc151f8253d8100.jpg";
 
@@ -31,56 +35,62 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
   const [openSideBar, setOpenSideBar] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
-  // NextAuth + Redux User Loading
   const { data: session } = useSession();
   const { data: userData, isLoading, refetch } = useLoadUserQuery(undefined);
 
-  const [socialAuth, { isSuccess }] = useSocialAuthMutation();
+  const [socialAuth, socialState] = useSocialAuthMutation();
   const [logout] = useLogoutMutation();
 
   const [shouldLogout, setShouldLogout] = useState(false);
 
-  // Trigger logout correctly
+  /** -----------------------------------------
+   *  1. HANDLE SOCIAL AUTH ONLY ONE TIME
+   * ---------------------------------------- */
   useEffect(() => {
-    if (shouldLogout) {
-      logout({});
+    if (!isLoading && session && !userData && !socialState.isLoading) {
+      socialAuth({
+        email: session.user?.email ?? "",
+        name: session.user?.name ?? "",
+        avatar: session.user?.image ?? "",
+      });
     }
-  }, [shouldLogout, logout]);
+  }, [session, userData, isLoading, socialAuth, socialState.isLoading]);
 
-  // Sync social login with backend
+  /** -----------------------------------------
+   *  2. WHEN SOCIAL LOGIN SUCCESS → REFETCH USER
+   * ---------------------------------------- */
   useEffect(() => {
-    if (!isLoading) {
-      if (!userData && session) {
-        socialAuth({
-          email: session.user?.email ?? "",
-          name: session.user?.name ?? "",
-          avatar: session.user?.image ?? "",
-        });
-        refetch();
-      }
-    }
-  }, [session, isLoading, userData, refetch, socialAuth]);
-
-  // auto-close login modal after success
-  useEffect(() => {
-    if (session && isSuccess) {
+    if (socialState.isSuccess) {
+      refetch();
       setOpen(false);
     }
+  }, [socialState.isSuccess, refetch, setOpen]);
 
-    // If user logged out from NextAuth but not backend → trigger logout
+  /** -----------------------------------------
+   *  3. BACKEND LOGOUT SYNC WITH NEXTAUTH
+   * ---------------------------------------- */
+  useEffect(() => {
     if (!session && !isLoading && !userData) {
       setShouldLogout(true);
     }
-  }, [session, isSuccess, isLoading, userData, setOpen]);
+  }, [session, isLoading, userData]);
 
-  // Scroll header effect
+  useEffect(() => {
+    if (shouldLogout) logout({});
+  }, [shouldLogout, logout]);
+
+  /** -----------------------------------------
+   *  4. HEADER SCROLL EFFECT
+   * ---------------------------------------- */
   useEffect(() => {
     const handleScroll = () => setActive(window.scrollY > 80);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Load dark mode from localStorage
+  /** -----------------------------------------
+   *  5. DARK MODE PERSISTENCE
+   * ---------------------------------------- */
   useEffect(() => {
     const stored = localStorage.getItem("darkMode");
     if (stored === "true") {
@@ -89,7 +99,6 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
     }
   }, []);
 
-  // Save dark mode
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
@@ -106,7 +115,6 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
       }`}
     >
       <div className="w-[95%] mx-auto flex items-center justify-between h-[70px]">
-        
         <h2 className="text-2xl font-bold text-black dark:text-white">
           ELearning
         </h2>
@@ -131,7 +139,6 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-
           {/* Dark Mode */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -144,7 +151,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
           {userData ? (
             <Link href="/profile">
               <Image
-                src={userData?.user?.avatar?.url || avatar}
+                src={userData.user?.avatar?.url || avatar}
                 alt="User"
                 width={32}
                 height={32}
@@ -180,7 +187,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
           onClick={() => setOpenSideBar(false)}
         >
           <div
-            className="absolute right-0 top-0 w-[70%] h-full bg-white dark:bg-gray-900 p-6 shadow-lg animate-slideIn"
+            className="absolute right-0 top-0 w-[70%] h-full bg-white dark:bg-gray-900 p-6 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">

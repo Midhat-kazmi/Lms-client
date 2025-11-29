@@ -1,9 +1,13 @@
+"use client";
+
 import { Cedarville_Cursive, Poppins, Josefin_Sans } from "next/font/google";
 import "./globals.css";
 import { ReactNode } from "react";
 import { ReduxProvider } from "./provider";
 import { Toaster } from "react-hot-toast";
 import SessionProviderWrapper from "./SessionProviderWrapper";
+import { useLoadUserQuery } from "../redux/features/api/apiSlice";
+import Loader from "./components/Loader/Loader";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -30,7 +34,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         className={`${poppins.variable} ${josefin.variable} ${cursive.variable} transition-colors duration-300`}
       >
         <SessionProviderWrapper>
-          <ReduxProvider>{children}</ReduxProvider>
+          <ReduxProvider>
+            <Custom>{children}</Custom> 
+          </ReduxProvider>
         </SessionProviderWrapper>
 
         <Toaster position="top-center" reverseOrder={false} />
@@ -38,3 +44,20 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     </html>
   );
 }
+
+/* -----------------------------------------------
+   Custom Loader Component (same file as RootLayout)
+------------------------------------------------- */
+const Custom = ({ children }: { children: ReactNode }) => {
+  const { isLoading } = useLoadUserQuery({});
+
+  return (
+    <>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <>{children}</>
+      )}
+    </>
+  );
+};
