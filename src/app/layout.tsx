@@ -1,8 +1,12 @@
 "use client";
 
-import { Cedarville_Cursive, Poppins, Josefin_Sans } from "next/font/google";
+import {
+  Cedarville_Cursive,
+  Poppins,
+  Josefin_Sans,
+} from "next/font/google";
 import "./globals.css";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { ReduxProvider } from "./provider";
 import { Toaster } from "react-hot-toast";
 import SessionProviderWrapper from "./SessionProviderWrapper";
@@ -35,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       >
         <SessionProviderWrapper>
           <ReduxProvider>
-            <Custom>{children}</Custom> 
+            <Custom>{children}</Custom>
           </ReduxProvider>
         </SessionProviderWrapper>
 
@@ -45,19 +49,20 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   );
 }
 
-/* -----------------------------------------------
-   Custom Loader Component (same file as RootLayout)
-------------------------------------------------- */
+/* ------------------------------
+   Hydration-Safe Custom Wrapper
+------------------------------ */
 const Custom = ({ children }: { children: ReactNode }) => {
   const { isLoading } = useLoadUserQuery({});
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <>
-      {isLoading ? (
-        <Loader />
-      ) : (
-        <>{children}</>
-      )}
-    </>
-  );
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Before hydration, render nothing (server and client match)
+  if (!mounted) return null;
+
+  return isLoading ? <Loader /> : <>{children}</>;
 };

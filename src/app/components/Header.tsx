@@ -31,9 +31,11 @@ type Props = {
 };
 
 const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
+  const [mounted, setMounted] = useState(false); // prevent SSR mismatch
   const [active, setActive] = useState(false);
   const [openSideBar, setOpenSideBar] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [shouldLogout, setShouldLogout] = useState(false);
 
   const { data: session } = useSession();
   const { data: userData, isLoading, refetch } = useLoadUserQuery(undefined);
@@ -41,7 +43,10 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
   const [socialAuth, socialState] = useSocialAuthMutation();
   const [logout] = useLogoutMutation();
 
-  const [shouldLogout, setShouldLogout] = useState(false);
+  // Mounted flag
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   /** -----------------------------------------
    *  1. HANDLE SOCIAL AUTH ONLY ONE TIME
@@ -107,6 +112,8 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
   }, [darkMode]);
 
   const navItems = ["Home", "Courses", "About", "Policy", "FAQ"];
+
+  if (!mounted) return null; // prevents SSR/client mismatch
 
   return (
     <header

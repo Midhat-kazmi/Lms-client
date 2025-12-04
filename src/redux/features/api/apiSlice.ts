@@ -13,7 +13,7 @@ export const apiSlice = createApi({
 
     refreshtoken: builder.query({
       query: () => ({
-        url: "/refresh",
+        url: "/user/refresh",
         method: "GET",
       }),
     }),
