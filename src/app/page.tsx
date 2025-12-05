@@ -1,12 +1,37 @@
-import type { Metadata } from "next";
-import ClientPage from "./ClientPage";
+"use client";
+import React, {  useState } from "react";
 
-export const metadata: Metadata = {
-  title: "Elearning",
-  description: "Best Platform",
-  keywords: ["Programming", "MERN", "Redux"],
+import Protected from "./hooks/useProtected";
+import Heading from "./utils/Heading";
+import Header from "./components/Header";
+import Profile from "./components/Profile/Profile";
+import { useSelector } from "react-redux";
+import Footer from "./components/Footer";
+const Page= () => {
+  const [open, setOpen] = useState(false);
+  const [activeItem, setActiveItem] = useState(5);  
+  const [route, setRoute] = useState("Login");
+  const { user } = useSelector((state: any) => state.auth);
+  return (
+    <div className="min-h-screen">
+      <Protected>
+        <Heading
+          title={`${user?.name} Profile-ELearning`}
+          description="ELearning is a platform for online learning and education."  
+          keywords="ELearning, online learning, education, courses, tutorials, training"
+        />
+        <Header
+          open={open}
+          setOpen={setOpen}
+          activeItem={activeItem}
+          setRoute={setRoute}
+          route={route}
+        />
+        <Profile user={user} />
+        <Footer/>
+      </Protected>
+    </div>
+  );
 };
 
-export default function Page() {
-  return <ClientPage />;
-}
+export default Page;

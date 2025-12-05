@@ -1,6 +1,5 @@
 import Image from "next/image";
 import React, { FC } from "react";
-import avatarDefault from "../../../public/assets/avatardefault.jpg";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { SiCoursera } from "react-icons/si";
 import { AiOutlineLogout } from "react-icons/ai";
@@ -32,15 +31,7 @@ const SideBarProfile: FC<Props> = ({
         }`}
         onClick={() => setActive(1)}
       >
-        <Image
-          alt=""
-          src={
-            user.avatar || avatar ? user.avatar.url || avatar : avatarDefault
-          }
-          width={20}
-          height={20}
-          className=" cursor-pointer rounded-full"
-        />
+       
         <h5 className="pl-2 800px:block hidden font-Poppins dark:text-white text-black ">
           My Account
         </h5>

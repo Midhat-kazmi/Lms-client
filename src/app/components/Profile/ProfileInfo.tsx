@@ -3,7 +3,6 @@ import Image from "next/image";
 import React, { FC, useEffect, useState } from "react";
 
 import { AiOutlineCamera } from "react-icons/ai";
-import avatarDefault from "../../../public/assets/avatardefault.jpg";
 import {
   useEditProfileMutation,
   useUpdateAvatarMutation,
@@ -56,34 +55,7 @@ const ProfileInfo: FC<Props> = ({ user, avatar }) => {
 
   return (
     <>
-      <div className="w-full flex justify-center">
-        <div className="relative">
-          <Image
-            src={
-              user.avatar || avatar ? user.avatar.url || avatar : avatarDefault
-            }
-            alt="Profile Photo"
-            width={120}
-            height={120}
-            className="w-[120px] object-cover h-[120px] cursor-pointer border-[3px] border-[#30bbb2ca] rounded-full"
-          />
-          <input
-            type="file"
-            name=""
-            id="avatar"
-            className="hidden"
-            onChange={imageHandler}
-            accept="image/png,image/jpg,image/jpeg,image/webp"
-          />
-          <label htmlFor="avatar">
-            <div className="w-[30px] h-[30px] bg-slate-900 rounded-full absolute bottom-2 right-2 flex items-center justify-center cursor-pointer">
-              <AiOutlineCamera size={20} className="z-1" />
-            </div>
-          </label>
-        </div>
-      </div>
-      <br />
-      <br />
+    
 
       <div className="w-full pl-6 800px:pl-10">
         <form onSubmit={handleSubmit}>
