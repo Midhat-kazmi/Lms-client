@@ -9,10 +9,7 @@ import { useSession } from "next-auth/react";
 
 // Redux
 import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
-import {
-  useLogoutMutation,
-  useSocialAuthMutation,
-} from "@/redux/features/auth/authApi";
+import { useLogoutMutation, useSocialAuthMutation } from "@/redux/features/auth/authApi";
 
 // Default avatar
 import avatar from "../../../public/assets/f49a1537ed0ad0933cc151f8253d8100.jpg";
@@ -272,10 +269,12 @@ const Header: FC<HeaderProps> = ({
             <CustomModel
               open={open}
               setOpen={setOpen}
-              setRoute={setRoute}
-              activeItem={activeItem}
               component={Login}
-              refetch={refetch}
+              extraProps={{
+                setRoute,
+                activeItem,
+                refetch,
+              }}
             />
           )}
 
@@ -283,9 +282,11 @@ const Header: FC<HeaderProps> = ({
             <CustomModel
               open={open}
               setOpen={setOpen}
-              setRoute={setRoute}
-              activeItem={activeItem}
               component={SignUp}
+              extraProps={{
+                setRoute,
+                activeItem,
+              }}
             />
           )}
 
@@ -293,9 +294,11 @@ const Header: FC<HeaderProps> = ({
             <CustomModel
               open={open}
               setOpen={setOpen}
-              setRoute={setRoute}
-              activeItem={activeItem}
               component={Verification}
+              extraProps={{
+                setRoute,
+                activeItem,
+              }}
             />
           )}
         </>

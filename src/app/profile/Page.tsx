@@ -6,8 +6,7 @@ import Header from "../components/Header";
 import Profile from "../components/Profile/Profile";
 import { useSelector } from "react-redux";
 import Footer from "../components/Footer";
-import { RootState } from "@/redux/store"; // ⬅️ added type
-
+import { RootState } from "@/redux/store"; 
 const Page = () => {
   const [open, setOpen] = useState(false);
   const [activeItem] = useState(5);

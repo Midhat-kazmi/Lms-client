@@ -13,6 +13,7 @@ import SessionProviderWrapper from "./SessionProviderWrapper";
 import { useLoadUserQuery } from "../redux/features/api/apiSlice";
 import Loader from "./components/Loader/Loader";
 
+// ------------------- Fonts -------------------
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -31,6 +32,7 @@ const cursive = Cedarville_Cursive({
   variable: "--font-Cursive",
 });
 
+// ------------------- Root Layout -------------------
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -49,11 +51,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   );
 }
 
-/* ------------------------------
-   Hydration-Safe Custom Wrapper
------------------------------- */
+// ------------------- Hydration-Safe Custom Wrapper -------------------
 const Custom = ({ children }: { children: ReactNode }) => {
-  const { isLoading } = useLoadUserQuery({});
+  // ✅ Correct: no {} argument
+  const { isLoading } = useLoadUserQuery();
+
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration mismatch
@@ -64,5 +66,6 @@ const Custom = ({ children }: { children: ReactNode }) => {
   // Before hydration, render nothing (server and client match)
   if (!mounted) return null;
 
+  // Show loader if user is still loading
   return isLoading ? <Loader /> : <>{children}</>;
 };
