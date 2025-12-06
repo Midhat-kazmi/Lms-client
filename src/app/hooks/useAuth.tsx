@@ -1,9 +1,9 @@
-import { useSelector } from "react-redux";
-export default function useAuth() {
-  const { user } = useSelector((state: any) => state.auth);
-  if (user) {
-    return true;
-  } else {
-    return false;
-  }
+import { useSelector, TypedUseSelectorHook } from "react-redux";
+import { RootState } from "../../redux/store"; // adjust the path to your store
+
+export default function useAuth(): boolean {
+  const useTypedSelector: TypedUseSelectorHook<RootState> = useSelector;
+  const { user } = useTypedSelector((state) => state.auth);
+
+  return !!user; // returns true if user exists, false otherwise
 }

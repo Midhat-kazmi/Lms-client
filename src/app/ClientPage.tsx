@@ -8,9 +8,8 @@ import Footer from "./components/Footer";
 
 export default function ClientPage() {
   const [open, setOpen] = useState(false);
-  const [activeItem, setActiveItem] = useState(0);
-  const [route, setRoute] = useState("Login");
-
+  const [activeItem] = useState(0);
+  
   return (
     <div>
       <Heading
@@ -23,8 +22,6 @@ export default function ClientPage() {
         open={open}
         setOpen={setOpen}
         activeItem={activeItem}
-        route={route}
-        setRoute={setRoute}
       />
 
       <Hero />

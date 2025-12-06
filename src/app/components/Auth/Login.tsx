@@ -14,10 +14,20 @@ type Props = {
   refetch?: () => void;
 };
 
+// Typed RTK Query error
+interface ApiError {
+  data?: {
+    message?: string;
+  };
+  status?: number;
+}
+
 //  Validation Schema
 const schema = Yup.object().shape({
   email: Yup.string().email("Invalid Email!").required("Please enter your email."),
-  password: Yup.string().required("Please enter your password.").min(6, "Password must be at least 6 characters."),
+  password: Yup.string()
+    .required("Please enter your password.")
+    .min(6, "Password must be at least 6 characters."),
 });
 
 const Login: FC<Props> = ({ setRoute, setOpen, refetch }) => {
@@ -35,17 +45,17 @@ const Login: FC<Props> = ({ setRoute, setOpen, refetch }) => {
 
   const { values, errors, touched, handleChange, handleSubmit } = formik;
 
-  //  Handle API responses
+  // Handle API responses
   useEffect(() => {
     if (isSuccess) {
       toast.success("Login successful!");
       setOpen(false);
-      refetch && refetch();
+      if (refetch) refetch();
     }
 
-    if (error && "data" in error) {
-      const err = error as any;
-      toast.error(err.data.message || "Login failed!");
+    if (error) {
+      const err = error as ApiError;
+      toast.error(err.data?.message ?? "Login failed!");
     }
   }, [isSuccess, error, setOpen, refetch]);
 

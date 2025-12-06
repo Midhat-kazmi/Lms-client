@@ -1,47 +1,27 @@
-import { useActivationMutation } from "../../../redux/features/auth/authApi"; 
-import { styles } from "../../styles/styles";
+"use client";
 import React, { FC, useEffect, useRef, useState } from "react";
+import { useSelector, TypedUseSelectorHook } from "react-redux";
 import { toast } from "react-hot-toast";
 import { VscWorkspaceTrusted } from "react-icons/vsc";
-import { useSelector } from "react-redux";
+import { useActivationMutation } from "../../../redux/features/auth/authApi";
+import { styles } from "../../styles/styles";
+import { RootState } from "../../../redux/store"; // Adjust path to your store
 
 type Props = {
   setRoute: (route: string) => void;
 };
 
 type VerifyNumber = {
-  "0": string;
-  "1": string;
-  "2": string;
-  "3": string;
-  "4": string;
-  "5": string;
+  0: string;
+  1: string;
+  2: string;
+  3: string;
+  4: string;
+  5: string;
 };
 
 const Verification: FC<Props> = ({ setRoute }) => {
   const [invalidError, setInvalidError] = useState<boolean>(false);
-
-  // ⬇️ Correct token coming from register
-  const activationToken = useSelector((state: any) => state.auth.activationToken);
-
-  const [activation, { isSuccess, error }] = useActivationMutation();
-
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success("Account Activated Successfully!");
-      setRoute("login");
-    }
-    if (error && "data" in error) {
-      const err = error as any;
-      toast.error(err.data.message);
-      setInvalidError(true);
-    }
-  }, [isSuccess, error, setRoute]);
-
-  const inputRefs = Array.from({ length: 6 }, () =>
-    useRef<HTMLInputElement>(null)
-  );
-
   const [verifyNumber, setVerifyNumber] = useState<VerifyNumber>({
     0: "",
     1: "",
@@ -51,9 +31,37 @@ const Verification: FC<Props> = ({ setRoute }) => {
     5: "",
   });
 
+  // Typed selector for activation token
+  const useTypedSelector: TypedUseSelectorHook<RootState> = useSelector;
+  const activationToken = useTypedSelector((state) => state.auth.activationToken);
+
+  const [activation, { isSuccess, error }] = useActivationMutation();
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success("Account Activated Successfully!");
+      setRoute("login");
+    }
+    if (error && "data" in error) {
+      const err = error as { data: { message: string } };
+      toast.error(err.data.message);
+      setInvalidError(true);
+    }
+  }, [isSuccess, error, setRoute]);
+
+  // Define refs individually for ESLint/Turbopack safety
+  const inputRefs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+  ];
+
   const handleInputChange = (index: number, value: string) => {
-    if (value.length > 1) return; // prevent 2-digit input
-    
+    if (value.length > 1) return;
+
     setInvalidError(false);
     const newVerifyNumber = { ...verifyNumber, [index]: value };
     setVerifyNumber(newVerifyNumber);
@@ -66,16 +74,15 @@ const Verification: FC<Props> = ({ setRoute }) => {
   };
 
   const verificationHandler = async () => {
-    const verificationNumber = Object.values(verifyNumber).join("");
-
-    if (verificationNumber.length !== 6) {
+    const verificationCode = Object.values(verifyNumber).join("");
+    if (verificationCode.length !== 6) {
       setInvalidError(true);
       return;
     }
 
     await activation({
       activationToken,
-      activationCode: verificationNumber,
+      activationCode: verificationCode,
     });
   };
 
@@ -90,19 +97,17 @@ const Verification: FC<Props> = ({ setRoute }) => {
       </div>
 
       <div className="mt-8 flex items-center justify-between gap-2 sm:gap-3">
-        {Object.keys(verifyNumber).map((key, index) => (
+        {inputRefs.map((ref, index) => (
           <input
-            key={key}
-            type="text"  // ⬅ FIXED (maxLength works now)
+            key={index}
+            type="text"
             maxLength={1}
-            ref={inputRefs[index]}
-            className={`w-[45px] sm:w-[55px] h-[55px] bg-transparent border-2 rounded-lg text-black dark:text-white text-center text-lg font-semibold outline-none ${
-              invalidError
-                ? "border-red-500"
-                : "border-gray-400 dark:border-white"
-            }`}
-            value={verifyNumber[key as keyof VerifyNumber]}
+            ref={ref}
+            value={verifyNumber[index as keyof VerifyNumber]}
             onChange={(e) => handleInputChange(index, e.target.value)}
+            className={`w-[45px] sm:w-[55px] h-[55px] bg-transparent border-2 rounded-lg text-black dark:text-white text-center text-lg font-semibold outline-none ${
+              invalidError ? "border-red-500" : "border-gray-400 dark:border-white"
+            }`}
           />
         ))}
       </div>

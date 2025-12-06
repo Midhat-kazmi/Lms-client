@@ -1,32 +1,33 @@
+// CustomModel.tsx
 import React, { FC } from "react";
-import { Modal, Box } from "@mui/material";
-type Props = {
+
+export interface CustomModelProps<T extends object> {
   open: boolean;
   setOpen: (open: boolean) => void;
-  activeItem: any;
-  component: any;
-  setRoute?: (route: string) => void;
-  refetch?: any;
-};
+  component: FC<T>;
+  componentProps?: T;
+}
 
-const CustomModel: FC<Props> = ({
+const CustomModel = <T extends object>({
   open,
   setOpen,
-  setRoute,
   component: Component,
-  refetch,
-}) => {
+  componentProps,
+}: CustomModelProps<T>) => {
+  if (!open) return null;
+
   return (
-    <Modal
-      open={open}
-      onClose={() => setOpen(false)}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-    >
-      <Box className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[450px] bg-white dark:bg-slate-900 rounded-[8px] shadow p-4 outline-none">
-        <Component setOpen={setOpen} setRoute={setRoute} refetch={refetch} />
-      </Box>
-    </Modal>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white dark:bg-gray-900 p-6 rounded-lg relative">
+        <button
+          className="absolute top-2 right-2"
+          onClick={() => setOpen(false)}
+        >
+          X
+        </button>
+        <Component {...(componentProps as T)} />
+      </div>
+    </div>
   );
 };
 

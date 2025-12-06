@@ -1,8 +1,8 @@
-
 "use client";
 import { configureStore } from "@reduxjs/toolkit";
 import { apiSlice } from "./features/api/apiSlice";
 import authSlice from "./features/auth/authSlice";
+
 export const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
@@ -12,11 +12,15 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(apiSlice.middleware),
 });
-//only load user
-const initializeApp = async () => {
 
+// Only load user
+const initializeApp = async () => {
   await store.dispatch(
-    apiSlice.endpoints.loadUser.initiate({}, { forceRefetch: true })
+    apiSlice.endpoints.loadUser.initiate(undefined, { forceRefetch: true })
   );
 };
 initializeApp();
+
+// Export types
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

@@ -1,7 +1,6 @@
 "use client";
 import React, { FC, useEffect, useState } from "react";
 import SideBarProfile from "./SideBarProfile";
-import { useLogoutMutation } from "../../../redux/features/auth/authApi";
 import { signOut } from "next-auth/react";
 import ProfileInfo from "./ProfileInfo";
 import ChangePassword from "./ChangePassword";
@@ -9,73 +8,94 @@ import { useGetUsersAllCoursesQuery } from "@/redux/features/courses/courseApi";
 import CourseCard from "../Courses/CourseCard";
 import Loader from "../Loader/Loader";
 
+// ------------------- Types -------------------
+interface IUserCourseRef {
+  id: string;
+}
+
+interface IUser {
+  name: string;
+  email: string;
+  role: "admin" | "user";
+  avatar?: { url: string } | null;
+  courses: IUserCourseRef[];
+}
+
+interface ICourseContent {
+  title: string;
+  content: string;
+}
+
+interface ICourse {
+  _id: string;
+  name: string;
+  ratings: number;
+  purchased: number;
+  estimatedPrice: number;
+  price: number;
+  thumbnail: { url: string };
+  courseData?: ICourseContent[];
+}
+
 type Props = {
-  user: any;
+  user: IUser | null; // allow null
 };
 
+// ------------------- Component -------------------
 const Profile: FC<Props> = ({ user }) => {
   const [scroll, setScroll] = useState(false);
-  const [avatar] = useState(null);
-  const [active, setActive] = useState(1);
-  const [courses, setCourses] = useState<any[]>([]);
+  const [avatar] = useState<string | null>(null);
+  const [active, setActive] = useState<number>(1);
+  const [courses, setCourses] = useState<ICourse[]>([]);
 
-  // CORRECT USAGE: mutation hook returns [trigger, resultObject]
-  const [logoutTrigger, { isLoading: isLoggingOut, isError: logoutError, error: logoutErrorObj }] =
-    useLogoutMutation();
+  const { data, isLoading } = useGetUsersAllCoursesQuery(undefined);
 
-  const { data, isLoading } = useGetUsersAllCoursesQuery(undefined, {});
-
-  // Properly attach/detach scroll listener
+  // ALWAYS SAFE — hooks are at the top
   useEffect(() => {
-    const handleScroll = () => {
-      setScroll(window.scrollY > 85);
-    };
-
+    const handleScroll = () => setScroll(window.scrollY > 85);
     window.addEventListener("scroll", handleScroll);
-    // call once to initialize
     handleScroll();
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
-    if (data) {
+    if (data?.course && user?.courses?.length) {
       const filteredCourses = user.courses
-        .map((item: any) =>
-          data.course.find((course: any) => item.id === course.id)
+        .map((item) =>
+          data.course.find((course: ICourse) => item.id === course._id)
         )
-        .filter((course: any) => course !== undefined);
+        .filter((c): c is ICourse => c !== undefined);
+
       setCourses(filteredCourses);
     }
   }, [data, user]);
 
   const logOutHandler = async () => {
     try {
-      // call server logout endpoint
-    //  await logoutTrigger().unwrap(); // unwrap throws on error
-      // then sign out of next-auth session (this redirects by default)
       await signOut();
     } catch (err) {
       console.error("Logout failed:", err);
-      // optionally show a toast or handle UI on error
     }
   };
 
-  // Show loader if getting courses OR logout is in progress
-  if (isLoading || isLoggingOut) {
-    return <Loader />;
+  // ❗ RETURN ONLY AFTER HOOKS
+  if (!user) {
+    return (
+      <div className="w-full min-h-[50vh] flex items-center justify-center text-lg">
+        Loading profile...
+      </div>
+    );
   }
+
+  if (isLoading) return <Loader />;
 
   return (
     <div className="w-[85%] flex mx-auto">
-      {/* Main container*/}
       <div
         className={`w-[60px] 800px:w-[310px] h-[450px] dark:bg-slate-900 bg-[#f5f5f5] bg-opacity-90 border dark:border-[#ffffff1d] border-[#00000012] rounded-[5px] shadow-md dark:shadow-sm mt-20 mb-20 sticky ${
           scroll ? "top-[120px]" : "top-8"
         } left-8`}
       >
-        {/* Sticky-Sidebar   */}
         <SideBarProfile
           user={user}
           active={active}
@@ -91,16 +111,16 @@ const Profile: FC<Props> = ({ user }) => {
         {active === 3 && (
           <div className="w-full pl-7 px-2 800px:px-10 800px:pl-8 ">
             <div className="grid grid-cols-1 gap-[20px] md:grid-cols-2 md:gap-[25px] xl:grid-cols-3 xl:gap-[35px]">
-              {courses &&
-                courses.map((item: any, index: number) => (
-                  <CourseCard item={item} key={index} isProfile={true} />
-                ))}
+              {courses.length > 0 ? (
+                courses.map((item) => (
+                  <CourseCard item={item} key={item._id} isProfile={true} />
+                ))
+              ) : (
+                <h1 className="text-center text-[18px] font-Poppins">
+                  You don&apos;t have any purchased courses!
+                </h1>
+              )}
             </div>
-            {courses.length === 0 && (
-              <h1 className="text-center text-[18px] font-Poppins">
-                You don&apos;t have any purchased courses!
-              </h1>
-            )}
           </div>
         )}
       </div>

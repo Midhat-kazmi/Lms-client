@@ -2,7 +2,11 @@
 import React, { FC, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { AiOutlineEyeInvisible, AiOutlineEye, AiFillGithub } from "react-icons/ai";
+import {
+  AiOutlineEyeInvisible,
+  AiOutlineEye,
+  AiFillGithub,
+} from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
 import toast from "react-hot-toast";
 import { useRegisterMutation } from "../../../redux/features/auth/authApi";
@@ -13,10 +17,24 @@ type Props = {
   refetch?: () => void;
 };
 
+// Typed success/error response for RTK Query
+interface RegisterResponse {
+  data?: {
+    message?: string;
+  };
+  error?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 // Validation Schema
 const schema = Yup.object().shape({
   name: Yup.string().required("Please enter your name."),
-  email: Yup.string().email("Invalid email format!").required("Please enter your email."),
+  email: Yup.string()
+    .email("Invalid email format!")
+    .required("Please enter your email."),
   password: Yup.string()
     .required("Please enter your password.")
     .min(6, "Password must be at least 6 characters."),
@@ -25,7 +43,7 @@ const schema = Yup.object().shape({
     .required("Please confirm your password."),
 });
 
-const Signup: FC<Props> = ({ setRoute, setOpen, refetch }) => {
+const Signup: FC<Props> = ({ setRoute }) => {
   const [show, setShow] = useState(false);
   const [registerUser, { isLoading }] = useRegisterMutation();
 
@@ -39,18 +57,19 @@ const Signup: FC<Props> = ({ setRoute, setOpen, refetch }) => {
     },
     validationSchema: schema,
     onSubmit: async (values) => {
-      try {
-        const { name, email, password } = values;
-        const res = await registerUser({ name, email, password });
+      const { name, email, password } = values;
 
-        if ("data" in res) {
-          toast.success("Signup successful! Please verify your email.");
-          setRoute("verification");
-        } else {
-          toast.error("Signup failed! Please try again.");
-        }
-      } catch (err) {
-        toast.error("An unexpected error occurred.");
+      const result = (await registerUser({
+        name,
+        email,
+        password,
+      })) as RegisterResponse;
+
+      if (result.data) {
+        toast.success("Signup successful! Please verify your email.");
+        setRoute("verification");
+      } else {
+        toast.error(result.error?.data?.message ?? "Signup failed! Try again.");
       }
     },
   });
@@ -112,14 +131,20 @@ const Signup: FC<Props> = ({ setRoute, setOpen, refetch }) => {
             onChange={handleChange}
             placeholder="Enter password"
             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 ${
-              errors.password && touched.password ? "border-red-500" : "border-gray-300"
+              errors.password && touched.password
+                ? "border-red-500"
+                : "border-gray-300"
             }`}
           />
           <span
             className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
-            onClick={() => setShow(!show)}
+            onClick={() => setShow((prev) => !prev)}
           >
-            {show ? <AiOutlineEye size={20} /> : <AiOutlineEyeInvisible size={20} />}
+            {show ? (
+              <AiOutlineEye size={20} />
+            ) : (
+              <AiOutlineEyeInvisible size={20} />
+            )}
           </span>
         </div>
         {errors.password && touched.password && (
@@ -143,7 +168,9 @@ const Signup: FC<Props> = ({ setRoute, setOpen, refetch }) => {
           }`}
         />
         {errors.confirmPassword && touched.confirmPassword && (
-          <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+          <p className="text-red-500 text-sm mt-1">
+            {errors.confirmPassword}
+          </p>
         )}
 
         {/* Submit */}
@@ -179,7 +206,10 @@ const Signup: FC<Props> = ({ setRoute, setOpen, refetch }) => {
           type="button"
           className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm sm:text-base"
         >
-          <AiFillGithub size={20} className="text-gray-800 dark:text-white" />
+          <AiFillGithub
+            size={20}
+            className="text-gray-800 dark:text-white"
+          />
           <span className="font-medium text-gray-700 dark:text-gray-300">
             Continue with GitHub
           </span>

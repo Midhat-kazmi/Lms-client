@@ -14,6 +14,7 @@ import {
   useSocialAuthMutation,
 } from "@/redux/features/auth/authApi";
 
+// Default avatar
 import avatar from "../../../public/assets/f49a1537ed0ad0933cc151f8253d8100.jpg";
 
 // Modals
@@ -22,15 +23,23 @@ import Login from "../components/Auth/Login";
 import SignUp from "../components/Auth/SignUp";
 import Verification from "../components/Auth/Verification";
 
-type Props = {
+// ------------------- Props -------------------
+type HeaderProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
   activeItem: number;
-  route: string;
-  setRoute: (route: string) => void;
+  route?: string; // optional
+  setRoute?: (route: string) => void; // optional
 };
 
-const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
+// ------------------- Header -------------------
+const Header: FC<HeaderProps> = ({
+  activeItem,
+  setOpen,
+  open,
+  route = "",
+  setRoute = () => {},
+}) => {
   const [mounted, setMounted] = useState(false); // prevent SSR mismatch
   const [active, setActive] = useState(false);
   const [openSideBar, setOpenSideBar] = useState(false);
@@ -44,13 +53,9 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
   const [logout] = useLogoutMutation();
 
   // Mounted flag
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
-  /** -----------------------------------------
-   *  1. HANDLE SOCIAL AUTH ONLY ONE TIME
-   * ---------------------------------------- */
+  // Handle social auth
   useEffect(() => {
     if (!isLoading && session && !userData && !socialState.isLoading) {
       socialAuth({
@@ -61,9 +66,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
     }
   }, [session, userData, isLoading, socialAuth, socialState.isLoading]);
 
-  /** -----------------------------------------
-   *  2. WHEN SOCIAL LOGIN SUCCESS → REFETCH USER
-   * ---------------------------------------- */
+  // Refetch user after social login
   useEffect(() => {
     if (socialState.isSuccess) {
       refetch();
@@ -71,9 +74,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
     }
   }, [socialState.isSuccess, refetch, setOpen]);
 
-  /** -----------------------------------------
-   *  3. BACKEND LOGOUT SYNC WITH NEXTAUTH
-   * ---------------------------------------- */
+  // Backend logout sync with NextAuth
   useEffect(() => {
     if (!session && !isLoading && !userData) {
       setShouldLogout(true);
@@ -84,18 +85,14 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
     if (shouldLogout) logout({});
   }, [shouldLogout, logout]);
 
-  /** -----------------------------------------
-   *  4. HEADER SCROLL EFFECT
-   * ---------------------------------------- */
+  // Scroll effect
   useEffect(() => {
     const handleScroll = () => setActive(window.scrollY > 80);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /** -----------------------------------------
-   *  5. DARK MODE PERSISTENCE
-   * ---------------------------------------- */
+  // Dark mode persistence
   useEffect(() => {
     const stored = localStorage.getItem("darkMode");
     if (stored === "true") {
@@ -107,13 +104,12 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
-
     localStorage.setItem("darkMode", String(darkMode));
   }, [darkMode]);
 
   const navItems = ["Home", "Courses", "About", "Policy", "FAQ"];
 
-  if (!mounted) return null; // prevents SSR/client mismatch
+  if (!mounted) return null;
 
   return (
     <header
@@ -206,7 +202,6 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
               </button>
             </div>
 
-            {/* Sidebar Links */}
             {navItems.map((item, i) => (
               <Link
                 key={i}
@@ -227,7 +222,6 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
 
             <hr className="my-4 border-gray-300 dark:border-gray-700" />
 
-            {/* Mobile Avatar or Login */}
             {userData ? (
               <Link href="/profile">
                 <Image
@@ -272,35 +266,39 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
       )}
 
       {/* Modals */}
-      {route === "login" && open && (
-        <CustomModel
-          open={open}
-          setOpen={setOpen}
-          setRoute={setRoute}
-          activeItem={activeItem}
-          component={Login}
-          refetch={refetch}
-        />
-      )}
+      {open && route && (
+        <>
+          {route === "login" && (
+            <CustomModel
+              open={open}
+              setOpen={setOpen}
+              setRoute={setRoute}
+              activeItem={activeItem}
+              component={Login}
+              refetch={refetch}
+            />
+          )}
 
-      {route === "signup" && open && (
-        <CustomModel
-          open={open}
-          setOpen={setOpen}
-          setRoute={setRoute}
-          activeItem={activeItem}
-          component={SignUp}
-        />
-      )}
+          {route === "signup" && (
+            <CustomModel
+              open={open}
+              setOpen={setOpen}
+              setRoute={setRoute}
+              activeItem={activeItem}
+              component={SignUp}
+            />
+          )}
 
-      {route === "verification" && open && (
-        <CustomModel
-          open={open}
-          setOpen={setOpen}
-          setRoute={setRoute}
-          activeItem={activeItem}
-          component={Verification}
-        />
+          {route === "verification" && (
+            <CustomModel
+              open={open}
+              setOpen={setOpen}
+              setRoute={setRoute}
+              activeItem={activeItem}
+              component={Verification}
+            />
+          )}
+        </>
       )}
     </header>
   );

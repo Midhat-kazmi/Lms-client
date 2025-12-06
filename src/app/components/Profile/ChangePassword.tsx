@@ -7,43 +7,49 @@ const ChangePassword = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [updatePassword, { isSuccess, error }] = useUpdatePasswordMutation();
 
   useEffect(() => {
     if (isSuccess) {
       toast.success("Password updated successfully");
     }
-    if (error) {
-      if ("data" in error) {
-        const errorData = error as any;
-        toast.error(errorData.data.message);
-      }
+
+    if (error && "data" in error) {
+      const err = error as { data: { message: string } };
+      toast.error(err.data.message);
     }
   }, [error, isSuccess]);
 
-  const passwordChangeHandler = async (e: any) => {
+  // Typed form event
+  const passwordChangeHandler = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
       toast.error("Passwords do not match");
-    } else {
-      await updatePassword({ oldPassword, newPassword });
+      return;
     }
+
+    await updatePassword({
+      oldPassword,
+      newPassword,
+    });
   };
 
   return (
     <div className="w-full pl-7 px-2 800px:px-5 800px:pl-0">
-      {/* Page Title */}
-      <h1 className="block text-2xl 800px:text-3xl font-Poppins text-center font-[500] text-black pb-2 dark:text-white ">
+      <h1 className="block text-2xl 800px:text-3xl font-Poppins text-center font-[500] text-black pb-2 dark:text-white">
         Change Password
       </h1>
+
       <div className="w-full">
-        {/* Password Change Form */}
         <form
           onSubmit={passwordChangeHandler}
           className="flex flex-col items-center"
         >
-          {/* Old Password  */}
+          {/* Old Password */}
           <div className="w-[100%] 800px:w-[60%] mt-5">
             <label
               htmlFor="old-password"
@@ -53,7 +59,6 @@ const ChangePassword = () => {
             </label>
             <input
               type="password"
-              name=""
               id="old-password"
               className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
               required
@@ -61,7 +66,8 @@ const ChangePassword = () => {
               onChange={(e) => setOldPassword(e.target.value)}
             />
           </div>
-          {/* New Password  */}
+
+          {/* New Password */}
           <div className="w-[100%] 800px:w-[60%] mt-5">
             <label
               htmlFor="new-password"
@@ -71,7 +77,6 @@ const ChangePassword = () => {
             </label>
             <input
               type="password"
-              name=""
               id="new-password"
               className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
               required
@@ -79,7 +84,8 @@ const ChangePassword = () => {
               onChange={(e) => setNewPassword(e.target.value)}
             />
           </div>
-          {/* Confirm Password  */}
+
+          {/* Confirm Password */}
           <div className="w-[100%] 800px:w-[60%] mt-5">
             <label
               htmlFor="confirm-password"
@@ -89,18 +95,17 @@ const ChangePassword = () => {
             </label>
             <input
               type="password"
-              name=""
               id="confirm-password"
               className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
-            {/* Submit Button */}
+
+            {/* Submit */}
             <input
               type="submit"
               className="!w-[95%] 800px:w-[250px] h-[40px] border border-[cyan] text-center dark:text-white text-black rounded-[3px] mt-8 cursor-pointer"
-              required
               value="Update"
             />
           </div>
